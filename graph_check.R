@@ -1,6 +1,7 @@
 library(Matrix)
 library(sparseAHC)
 library(igraph)
+library(vegan)
 
 A = cbind(c(0,12,0,0,0,0,14,0,0),
 		  c(12,0,1,11,0,0,13,0,0),
@@ -37,8 +38,11 @@ E(g)$color[E(mst)$id] <- "yellow"
 plot(g, edge.width = E(g)$weight*20)
 
 par(mfrow = c(1,2))
-plot(sparseAHC(as(A,"sparseMatrix"), linkage = "single"))
-plot(sparseAHC(as(L,"sparseMatrix"), linkage = "single"))
+plot(sparseAHC(as(A,"sparseMatrix"), linkage = "single"), labels = colnames(A))
+plot(sparseAHC(as(L,"sparseMatrix"), linkage = "single"), labels = colnames(L))
+
+
+
 
 
 
