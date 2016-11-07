@@ -95,6 +95,7 @@ cutTree = function(g, dt){
 
 cutTree(mst)
 
+## reorder dendogram
 
 
 
