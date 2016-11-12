@@ -9,6 +9,7 @@ library(MCL)
 library(dplyr)
 library(zipcode)
 data(zipcode)
+library(maps)
 peri = c("AA", "AE", "AK", "AP","AS", "FM", "GU", "HI", "MP", "PR", "PW", "VI", "MH") ## remove non-us continential 
 zipcode = zipcode[!(zipcode$state %in% peri),]
 
@@ -68,7 +69,7 @@ short3 = aggregate(short3$zip, by = list(short3$NPI),FUN = getMode )
 colnames(short3) = c("NPI", "zip")
 
 short = rbind(short1, short2, short3)
-write.table(short, "PCP_zip.csv", quote = T, row.names = F, sep = ",")
+write.table(short, "NPI_zip.csv", quote = T, row.names = F, sep = ",")
 #For the doctors that have zip information, we have to consolidate zip of the doctor
 pcp_spec = c("FAMILY PRACTICE", "GENERAL PRACTICE",
              "GERIATRIC MEDICINE", "OSTEOPATHIC MANIPULATIVE MEDICINE",
@@ -103,27 +104,4 @@ core = coreness(gref)
 hist(core)
 gsm = induced_subgraph(gref,core>300)
 M = get.adjacency(gsm,attr = "weight", sparse = T)
-
-hclust = sparseAHC(M, linkage = "single")
-
-x = sample(V(gsm), 1000)
-y = induced_subgraph(gsm, x)
-
-
-Els = as_edgelist(gsm)
-Els = data.frame(Els, E(y)$weight,stringsAsFactors = F)
-colnames(Els) = c("NPI", "NPI2", "Weight")
-write.csv(Els, "PCP_Referral_List_sample.csv", row.names = F)
-
-#create a merge matrix
-order = hclust$order
-merge = hclust$merge
-sorted_order = data.frame(colnames(M), 1:length(colnames(M)), order)
-colnames(sorted_order) = c("NPI", "index", "order")
-sorted_order = merge(sorted_order, short, by = "NPI", all.x = T)
-sorted_order = merge(sorted_order, zipcode, by = "zip", all.x = T)
-sorted_order = sorted_order[,1:6]
-sorted_order = sorted_order[order(sorted_order$index),]
-write.csv(sorted_order, "sorted_order.csv", row.names = F)
-write.csv(merge, "merge.csv", row.names = F)
-
+save(gsm, file = "Data/PCP_Referral_graph.RData")
