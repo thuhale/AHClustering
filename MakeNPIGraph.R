@@ -8,8 +8,6 @@ library(MCL)
 library(zipcode)
 data(zipcode)
 library(maps)
-library(maptools)
-library(geosphere)
 
 peri = c("AA", "AE", "AK", "AP","AS", "FM", "GU", "HI", "MP", "PR", "PW", "VI", "MH") ## remove non-us continential 
 zipcode = zipcode[!(zipcode$state %in% peri),]
@@ -36,12 +34,12 @@ core = coreness(gref)
 hist(core)
 gsm = induced_subgraph(gref,core>median(core))
 M = get.adjacency(gsm,attr = "weight", sparse = T)
+save(M, file = "Data/NPI_Matrix.RData")
 
 
 ##SpareAHC
 hclust = sparseAHC(M, linkage = "average")
 save(hclust, file = "Data/HClust_NPI.RData")
-
 NPI = as.data.frame(colnames(M))
 colnames(NPI) = "NPI"
 write.csv(NPI, "Data/HClust_NPI.csv", row.names = F)
