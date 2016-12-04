@@ -18,6 +18,7 @@ zipcode = zipcode[!(zipcode$state %in% peri),]
 
 short = read.csv("Data/NPI_zip.csv", colClasses = "character")
 
+load("Data/NPI_Matrix.RData")
 load("Data/HClust_NPI.RData") #load hclust
 NPI = read.csv("Data/HClust_NPI.csv")
 
