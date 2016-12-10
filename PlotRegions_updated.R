@@ -1,12 +1,4 @@
-rm(list = ls())
-library(igraph)
-library(zipcode)
-data(zipcode)
-library(maps)
-library(deldir)
-library(RColorBrewer)
-
-
+## PLOTTING Ultility file
 # find a coloring of the graph g so that adjacent nodes have a different color.
 # think of each "region" as a node, we want to draw a map of regions such that boundaries
 #  are easily visible.
