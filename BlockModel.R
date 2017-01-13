@@ -79,12 +79,12 @@ dt = merge(dt, short, by = "NPI", all.x = T)
 dt = merge(dt, zipcode, by = "zip", all.x = T)
 
 
-tab = as.data.frame(table(dt$clus))
-tab = tab[order(tab$Freq),]
+tab1 = as.data.frame(table(dt$clus))
+tab1 = tab1[order(tab1$Freq),]
 
 tab2 = as.data.frame(table(dt$greedy))
 tab2 = tab2[order(tab2$Freq),]
-
+head(tab2)
 
 # group the NPI by Zipcode
 agg = aggregate(dt$clus, by = list(dt$zip), FUN = getmode)
@@ -101,42 +101,33 @@ W = get.adjacency(gzip, attr = 'weight', sparse = T)
 W = W[rownames(W) %in% agg$zip, colnames(W) %in% agg$zip]
 W = W[order(rownames(W)),order(colnames(W))]
 agg = agg[order(agg$zip),]
-A = W
-diag(A) = 0
+dt = merge(dt, agg, by = 'zip', all.x = T)
 ## greedy step
 Z = makeMemMatrix(agg$clus)
-Z <- as(Z, "dgCMatrix")
-mem = Z
-nclu = c()
-for(i in 1:10000){
-	B = A %*% mem
-	samp = sample(nrow(B), floor(nrow(B)/100), replace = F) # take 1% of doctors
-	tmp = B[samp,]	
-	col = apply(tmp, 1, function(z) reOrder(z))
-	col = t(col)
-	mem[samp,] = col
-	nclu = c(nclu,sum(colSums(mem)!=0))
-}
-greedy = makeMemList(mem)
-agg = data.frame(agg, greedy)
-length(unique(agg$greedy))
 
-tab3 = as.data.frame(table(agg$greedy))
-tab3 = tab3[order(tab3$Freq),]
-head(tab3)
-
-Z = makeMemMatrix(agg$greedy)
 B = t(Z) %*% W %*% Z 
 B = as.matrix(B)
 heatmap(B)
+
 #Number of within cluster compared to outside cluster
 sum(diag(B))/sum(B)
-diag(B)/rowSums(B)
+summary(diag(B)/rowSums(B))
 hist(diag(B)/rowSums(B))
 
-agg[agg$clus == which.min((diag(B)/rowSums(B))),]
-agg[agg$clus == which.max((diag(B)/rowSums(B))),]
+indeg = diag(B)/rowSums(B)
+sort(indeg)
+plot(indeg ~ colSums(Z))
 
+
+# Explore clusters that are highly exogeneous
+small = which(indeg < 0.4)
+agg[agg$clus %in% small,]
+
+small1 = B[283,]
+small1[which.max(small1)]/sum(small1)
+plot(small1/sum(small1))
+big1 = B[which.max(small1),]
+plot(big1/sum(big1))
 ## Compare it with hrr cluster
 hrr = read.csv("Public/ZipHsaHrr14.csv")
 hrr = hrr[, c("zipcode14", "hrrnum")]
@@ -168,23 +159,3 @@ agg1[agg1$hrr == which.min((diag(B1)/rowSums(B1))),]
 
 
 
-#Random Walk
-Z = makeMemMatrix(agg$clus)
-B = t(Z) %*% W %*% Z
-O = rowSums(B)
-B = diag(1/O) %*% B
-B = as.matrix(B)
-pdf(file = "Pix/BlockMatrix_RW.pdf")
-heatmap(B)
-dev.off()
-
-self = diag(B)
-tmp = B
-diag(tmp) = 0
-O = rowSums(tmp)
-
-x = self - O
-agg[agg$clus == which.max(x),]
-agg[agg$hrr==,]
-
-agg[agg$city == "Detroit" & agg$state == "MI",]
